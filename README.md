@@ -24,8 +24,8 @@ Next.js アプリケーションで SoundCloud の音楽を MP3 形式でダウ�
 ### 1. リポジトリのクローン
 
 ```bash
-git clone https://github.com/yourusername/soundcloud2wav.git
-cd soundcloud2wav
+git clone https://github.com/yourusername/soundcloud2mp3.git
+cd soundcloud2mp3
 ```
 
 ### 2. 依存関係のインストール
@@ -140,7 +140,7 @@ SoundCloud トラックのメタデータを取得します。
 ## プロジェクト構成
 
 ```
-soundcloud2wav/
+soundcloud2mp3/
 ├── src/
 │   ├── app/
 │   │   ├── api/
