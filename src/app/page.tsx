@@ -13,7 +13,6 @@ export default function Home() {
     thumbnail?: string;
   } | null>(null);
   const [fetchingInfo, setFetchingInfo] = useState(false);
-  const [format, setFormat] = useState<'wav' | 'flac' | 'mp3'>('wav');
 
   const fetchMetadata = async (url: string) => {
     setFetchingInfo(true);
@@ -52,14 +51,7 @@ export default function Home() {
     }
 
     try {
-      let endpoint = '/api/convert';
-      if (format === 'flac') {
-        endpoint = '/api/convert-flac';
-      } else if (format === 'mp3') {
-        endpoint = '/api/convert-mp3';
-      }
-      
-      const response = await fetch(endpoint, {
+      const response = await fetch('/api/convert', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -108,7 +100,7 @@ export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-24">
       <div className="z-10 max-w-5xl w-full items-center justify-center font-mono text-sm">
-        <h1 className="text-4xl font-bold mb-8 text-center">SoundCloud to WAV Converter</h1>
+        <h1 className="text-4xl font-bold mb-8 text-center">SoundCloud to MP3 Converter</h1>
         
         <div className="w-full max-w-md mx-auto">
           <div className="mb-4">
@@ -178,46 +170,6 @@ export default function Home() {
             </div>
           )}
           
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Output Format:
-            </label>
-            <div className="flex flex-col space-y-2">
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  name="format"
-                  value="wav"
-                  checked={format === 'wav'}
-                  onChange={(e) => setFormat(e.target.value as 'wav' | 'flac' | 'mp3')}
-                  className="mr-2"
-                />
-                <span className="text-sm">WAV (Uncompressed, High Quality)</span>
-              </label>
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  name="format"
-                  value="flac"
-                  checked={format === 'flac'}
-                  onChange={(e) => setFormat(e.target.value as 'wav' | 'flac' | 'mp3')}
-                  className="mr-2"
-                />
-                <span className="text-sm">FLAC (Lossless + Artwork)</span>
-              </label>
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  name="format"
-                  value="mp3"
-                  checked={format === 'mp3'}
-                  onChange={(e) => setFormat(e.target.value as 'wav' | 'flac' | 'mp3')}
-                  className="mr-2"
-                />
-                <span className="text-sm">MP3 (Compressed + Artwork)</span>
-              </label>
-            </div>
-          </div>
           
           {loading && (
             <div className="mb-4 p-3 bg-blue-100 border border-blue-400 text-blue-700 rounded-lg">
@@ -236,7 +188,7 @@ export default function Home() {
             disabled={loading || fetchingInfo}
             className="w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
           >
-            {loading ? 'Converting...' : `Convert to ${format.toUpperCase()}`}
+            {loading ? 'Converting...' : 'Convert to MP3'}
           </button>
           
           <div className="mt-8 text-sm text-gray-600">

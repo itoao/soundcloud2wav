@@ -76,11 +76,16 @@ async function getTrackMetadata(url: string): Promise<TrackMetadata> {
 // Sanitize filename for safe download
 function sanitizeFilename(filename: string): string {
   // Remove or replace characters that might cause issues
+  // Also handle Unicode characters by encoding them
   return filename
     .replace(/[<>:"/\\|?*\x00-\x1f]/g, '_')
     .replace(/\.+/g, '.')
     .replace(/^\s+|\s+$/g, '')
-    .slice(0, 200); // Limit length
+    .slice(0, 100) // Reduce length limit for safety
+    .replace(/[^\x00-\x7F]/g, (char) => {
+      // Replace non-ASCII characters with their Unicode escape sequence
+      return `_${char.charCodeAt(0).toString(16)}_`;
+    });
 }
 
 export async function POST(request: NextRequest) {
@@ -109,10 +114,10 @@ export async function POST(request: NextRequest) {
     const metadata = await getTrackMetadata(body.url);
     
     // Generate temporary file path
-    tempFilePath = generateTempFilename('wav');
+    tempFilePath = generateTempFilename('mp3');
     
-    // Execute yt-dlp command with metadata and thumbnail embedding
-    const command = `yt-dlp -x --audio-format wav -o "${tempFilePath}" --add-metadata --embed-thumbnail "${body.url}"`;
+    // Execute yt-dlp command with metadata and thumbnail embedding for MP3
+    const command = `yt-dlp -x --audio-format mp3 -o "${tempFilePath}" --add-metadata --embed-thumbnail "${body.url}"`;
     
     try {
       await execAsync(command, {
@@ -180,10 +185,12 @@ export async function POST(request: NextRequest) {
     
     // Create response with proper headers and metadata filename
     const safeFilename = sanitizeFilename(metadata.filename);
+    const originalFilename = metadata.filename || 'soundcloud-audio';
+    
     return new NextResponse(webStream, {
       headers: {
-        'Content-Type': 'audio/wav',
-        'Content-Disposition': `attachment; filename="${safeFilename}.wav"`,
+        'Content-Type': 'audio/mpeg',
+        'Content-Disposition': `attachment; filename="${safeFilename}.mp3"; filename*=UTF-8''${encodeURIComponent(originalFilename)}.mp3`,
       },
     });
     
