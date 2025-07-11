@@ -13,6 +13,7 @@ export default function Home() {
     thumbnail?: string;
   } | null>(null);
   const [fetchingInfo, setFetchingInfo] = useState(false);
+  const [format, setFormat] = useState<'wav' | 'flac' | 'mp3'>('wav');
 
   const fetchMetadata = async (url: string) => {
     setFetchingInfo(true);
@@ -51,7 +52,14 @@ export default function Home() {
     }
 
     try {
-      const response = await fetch('/api/convert', {
+      let endpoint = '/api/convert';
+      if (format === 'flac') {
+        endpoint = '/api/convert-flac';
+      } else if (format === 'mp3') {
+        endpoint = '/api/convert-mp3';
+      }
+      
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -140,13 +148,19 @@ export default function Home() {
           {trackInfo && (
             <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
               <div className="flex items-start space-x-3">
-                {trackInfo.thumbnail && (
-                  <img 
-                    src={trackInfo.thumbnail} 
-                    alt="Track thumbnail" 
-                    className="w-16 h-16 rounded-lg object-cover"
-                  />
-                )}
+                <div className="w-16 h-16 rounded-lg bg-gray-200 flex items-center justify-center flex-shrink-0">
+                  {trackInfo.thumbnail ? (
+                    <img 
+                      src={trackInfo.thumbnail} 
+                      alt="Track thumbnail" 
+                      className="w-16 h-16 rounded-lg object-cover"
+                    />
+                  ) : (
+                    <svg className="w-8 h-8 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.369 4.369 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z" clipRule="evenodd"></path>
+                    </svg>
+                  )}
+                </div>
                 <div className="flex-1">
                   <h3 className="font-semibold text-gray-800">
                     {trackInfo.title || 'Unknown Title'}
@@ -163,6 +177,47 @@ export default function Home() {
               </div>
             </div>
           )}
+          
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Output Format:
+            </label>
+            <div className="flex flex-col space-y-2">
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  name="format"
+                  value="wav"
+                  checked={format === 'wav'}
+                  onChange={(e) => setFormat(e.target.value as 'wav' | 'flac' | 'mp3')}
+                  className="mr-2"
+                />
+                <span className="text-sm">WAV (Uncompressed, High Quality)</span>
+              </label>
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  name="format"
+                  value="flac"
+                  checked={format === 'flac'}
+                  onChange={(e) => setFormat(e.target.value as 'wav' | 'flac' | 'mp3')}
+                  className="mr-2"
+                />
+                <span className="text-sm">FLAC (Lossless + Artwork)</span>
+              </label>
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  name="format"
+                  value="mp3"
+                  checked={format === 'mp3'}
+                  onChange={(e) => setFormat(e.target.value as 'wav' | 'flac' | 'mp3')}
+                  className="mr-2"
+                />
+                <span className="text-sm">MP3 (Compressed + Artwork)</span>
+              </label>
+            </div>
+          </div>
           
           {loading && (
             <div className="mb-4 p-3 bg-blue-100 border border-blue-400 text-blue-700 rounded-lg">
@@ -181,7 +236,7 @@ export default function Home() {
             disabled={loading || fetchingInfo}
             className="w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
           >
-            {loading ? 'Converting...' : 'Convert to WAV'}
+            {loading ? 'Converting...' : `Convert to ${format.toUpperCase()}`}
           </button>
           
           <div className="mt-8 text-sm text-gray-600">

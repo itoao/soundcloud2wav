@@ -6,7 +6,7 @@ import { promisify as promisifyFs } from 'util';
 import path from 'path';
 import { tmpdir } from 'os';
 import { randomBytes } from 'crypto';
-import { nodeStreamToWebStream } from './stream-utils';
+import { nodeStreamToWebStream } from '../convert/stream-utils';
 
 const execAsync = promisify(exec);
 const unlinkAsync = promisifyFs(unlink);
@@ -109,10 +109,10 @@ export async function POST(request: NextRequest) {
     const metadata = await getTrackMetadata(body.url);
     
     // Generate temporary file path
-    tempFilePath = generateTempFilename('wav');
+    tempFilePath = generateTempFilename('mp3');
     
-    // Execute yt-dlp command with metadata and thumbnail embedding
-    const command = `yt-dlp -x --audio-format wav -o "${tempFilePath}" --add-metadata --embed-thumbnail "${body.url}"`;
+    // Execute yt-dlp command with metadata and thumbnail embedding for MP3
+    const command = `yt-dlp -x --audio-format mp3 -o "${tempFilePath}" --add-metadata --embed-thumbnail "${body.url}"`;
     
     try {
       await execAsync(command, {
@@ -182,8 +182,8 @@ export async function POST(request: NextRequest) {
     const safeFilename = sanitizeFilename(metadata.filename);
     return new NextResponse(webStream, {
       headers: {
-        'Content-Type': 'audio/wav',
-        'Content-Disposition': `attachment; filename="${safeFilename}.wav"`,
+        'Content-Type': 'audio/mpeg',
+        'Content-Disposition': `attachment; filename="${safeFilename}.mp3"`,
       },
     });
     
