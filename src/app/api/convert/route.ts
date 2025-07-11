@@ -21,6 +21,13 @@ interface ConvertRequest {
   url: string;
 }
 
+// Type for track metadata
+interface TrackMetadata {
+  artist?: string;
+  title?: string;
+  filename: string;
+}
+
 // Validate SoundCloud URL
 function isValidSoundCloudUrl(url: string): boolean {
   try {
@@ -35,6 +42,45 @@ function isValidSoundCloudUrl(url: string): boolean {
 function generateTempFilename(extension: string): string {
   const uniqueId = randomBytes(16).toString('hex');
   return path.join(tmpdir(), `soundcloud-${uniqueId}.${extension}`);
+}
+
+// Get track metadata using yt-dlp
+async function getTrackMetadata(url: string): Promise<TrackMetadata> {
+  try {
+    // Use yt-dlp to get metadata in JSON format
+    const { stdout } = await execAsync(
+      `yt-dlp --dump-json --no-download "${url}"`,
+      { timeout: 30000 }
+    );
+    
+    const metadata = JSON.parse(stdout);
+    const artist = metadata.uploader || metadata.artist || 'Unknown Artist';
+    const title = metadata.title || 'Unknown Title';
+    
+    // Clean filename for safe file system usage
+    const cleanFilename = `${artist} - ${title}`.replace(/[<>:"/\\|?*]/g, '_');
+    
+    return {
+      artist,
+      title,
+      filename: cleanFilename
+    };
+  } catch (error) {
+    console.error('Failed to get metadata:', error);
+    return {
+      filename: 'soundcloud-audio'
+    };
+  }
+}
+
+// Sanitize filename for safe download
+function sanitizeFilename(filename: string): string {
+  // Remove or replace characters that might cause issues
+  return filename
+    .replace(/[<>:"/\\|?*\x00-\x1f]/g, '_')
+    .replace(/\.+/g, '.')
+    .replace(/^\s+|\s+$/g, '')
+    .slice(0, 200); // Limit length
 }
 
 export async function POST(request: NextRequest) {
@@ -59,11 +105,14 @@ export async function POST(request: NextRequest) {
       );
     }
     
+    // Get track metadata first
+    const metadata = await getTrackMetadata(body.url);
+    
     // Generate temporary file path
     tempFilePath = generateTempFilename('wav');
     
-    // Execute yt-dlp command
-    const command = `yt-dlp -x --audio-format wav -o "${tempFilePath}" "${body.url}"`;
+    // Execute yt-dlp command with metadata
+    const command = `yt-dlp -x --audio-format wav -o "${tempFilePath}" --add-metadata "${body.url}"`;
     
     try {
       await execAsync(command, {
@@ -129,11 +178,12 @@ export async function POST(request: NextRequest) {
       }
     });
     
-    // Create response with proper headers
+    // Create response with proper headers and metadata filename
+    const safeFilename = sanitizeFilename(metadata.filename);
     return new NextResponse(webStream, {
       headers: {
         'Content-Type': 'audio/wav',
-        'Content-Disposition': 'attachment; filename="soundcloud-audio.wav"',
+        'Content-Disposition': `attachment; filename="${safeFilename}.wav"`,
       },
     });
     
