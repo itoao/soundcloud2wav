@@ -1,17 +1,13 @@
-# SoundCloud to WAV Converter
+# SoundCloud to MP3 Converter
 
-Next.js アプリケーションで SoundCloud の音楽を WAV 形式でダウンロードできるツールです。
+Next.js アプリケーションで SoundCloud の音楽を MP3 形式でダウンロードできるツールです。
 
 ## 機能
 
-- SoundCloud の URL を入力するだけで音声ファイルに変換
-- **3つのフォーマットから選択可能**：
-  - **WAV**: 非圧縮、最高品質
-  - **FLAC**: ロスレス圧縮 + アートワーク埋め込み
-  - **MP3**: 圧縮 + アートワーク埋め込み
+- SoundCloud の URL を入力するだけで MP3 ファイルに変換
 - **自動的にアーティスト名と曲タイトルを取得してファイル名に設定**
 - **トラック情報の事前プレビュー（サムネイル、タイトル、アーティスト、再生時間）**
-- **アートワーク（サムネイル）の自動埋め込み**（FLAC・MP3）
+- **アートワーク（サムネイル）の自動埋め込み**
 - ブラウザから直接ダウンロード可能
 - シンプルで使いやすい UI
 - エラーハンドリング付き
@@ -92,12 +88,8 @@ http://localhost:3000
 
 1. SoundCloud のトラック URL を入力フィールドに貼り付け
 2. URL を入力すると自動的にトラック情報（サムネイル、タイトル、アーティスト、再生時間）が表示されます
-3. 出力フォーマットを選択：
-   - **WAV**: 非圧縮、最高品質（大きなファイルサイズ）
-   - **FLAC**: ロスレス圧縮 + アートワーク（中程度のファイルサイズ）
-   - **MP3**: 圧縮 + アートワーク（小さなファイルサイズ）
-4. 「Convert to [FORMAT]」ボタンをクリック
-5. 変換が完了すると「アーティスト名 - 曲名.[拡張子]」の形式でダウンロードが開始されます
+3. 「Convert to MP3」ボタンをクリック
+4. 変換が完了すると「アーティスト名 - 曲名.mp3」の形式でダウンロードが開始されます
 
 ### 対応している URL 形式
 
@@ -107,36 +99,6 @@ http://localhost:3000
 ## API エンドポイント
 
 ### POST /api/convert
-
-SoundCloud URL を WAV ファイルに変換します。
-
-**リクエスト:**
-```json
-{
-  "url": "https://soundcloud.com/artist/track"
-}
-```
-
-**レスポンス:**
-- 成功時: WAV ファイルのバイナリストリーム（ファイル名はアーティスト名と曲タイトルを含む）
-- エラー時: JSON エラーメッセージ
-
-### POST /api/convert-flac
-
-SoundCloud URL を FLAC ファイル（アートワーク付き）に変換します。
-
-**リクエスト:**
-```json
-{
-  "url": "https://soundcloud.com/artist/track"
-}
-```
-
-**レスポンス:**
-- 成功時: FLAC ファイルのバイナリストリーム（アートワーク埋め込み済み）
-- エラー時: JSON エラーメッセージ
-
-### POST /api/convert-mp3
 
 SoundCloud URL を MP3 ファイル（アートワーク付き）に変換します。
 
@@ -182,9 +144,11 @@ soundcloud2wav/
 ├── src/
 │   ├── app/
 │   │   ├── api/
-│   │   │   └── convert/
-│   │   │       ├── route.ts          # API エンドポイント
-│   │   │       └── stream-utils.ts   # ストリーミングユーティリティ
+│   │   │   ├── convert/
+│   │   │   │   ├── route.ts          # MP3変換 API エンドポイント
+│   │   │   │   └── stream-utils.ts   # ストリーミングユーティリティ
+│   │   │   └── metadata/
+│   │   │       └── route.ts          # メタデータ取得 API
 │   │   ├── page.tsx                  # メインページ UI
 │   │   ├── layout.tsx                # レイアウト
 │   │   └── globals.css               # グローバルスタイル
@@ -205,6 +169,7 @@ soundcloud2wav/
 - **言語**: TypeScript
 - **スタイリング**: Tailwind CSS v4
 - **ツール**: yt-dlp, ffmpeg
+- **出力フォーマット**: MP3（アートワーク埋め込み）
 
 ## トラブルシューティング
 
