@@ -5,6 +5,8 @@ Next.js アプリケーションで SoundCloud の音楽を WAV 形式でダウ�
 ## 機能
 
 - SoundCloud の URL を入力するだけで WAV ファイルに変換
+- **自動的にアーティスト名と曲タイトルを取得してファイル名に設定**
+- **トラック情報の事前プレビュー（サムネイル、タイトル、アーティスト、再生時間）**
 - ブラウザから直接ダウンロード可能
 - シンプルで使いやすい UI
 - エラーハンドリング付き
@@ -84,8 +86,9 @@ http://localhost:3000
 ### 3. SoundCloud URL を入力
 
 1. SoundCloud のトラック URL を入力フィールドに貼り付け
-2. 「Convert to WAV」ボタンをクリック
-3. 変換が完了すると自動的にダウンロードが開始されます
+2. URL を入力すると自動的にトラック情報（サムネイル、タイトル、アーティスト、再生時間）が表示されます
+3. 「Convert to WAV」ボタンをクリック
+4. 変換が完了すると「アーティスト名 - 曲名.wav」の形式でダウンロードが開始されます
 
 ### 対応している URL 形式
 
@@ -106,8 +109,32 @@ SoundCloud URL を WAV ファイルに変換します。
 ```
 
 **レスポンス:**
-- 成功時: WAV ファイルのバイナリストリーム
+- 成功時: WAV ファイルのバイナリストリーム（ファイル名はアーティスト名と曲タイトルを含む）
 - エラー時: JSON エラーメッセージ
+
+### POST /api/metadata
+
+SoundCloud トラックのメタデータを取得します。
+
+**リクエスト:**
+```json
+{
+  "url": "https://soundcloud.com/artist/track"
+}
+```
+
+**レスポンス:**
+```json
+{
+  "artist": "Artist Name",
+  "title": "Track Title",
+  "duration": 180,
+  "thumbnail": "https://...",
+  "description": "Track description",
+  "uploader": "Uploader Name",
+  "upload_date": "20240101"
+}
+```
 
 ## プロジェクト構成
 
